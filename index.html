@@ -1,0 +1,121 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>ヲシテ文献リーダー</title>
+  <link rel="manifest" href="manifest.json" />
+  <style>
+    body {
+      font-family: sans-serif;
+      background: #fdfdf0;
+      color: #333;
+      padding: 1em;
+    }
+    select, button {
+      font-size: 1em;
+      padding: 0.5em;
+      margin-bottom: 1em;
+    }
+    pre {
+      background: #fff;
+      border: 1px solid #ccc;
+      padding: 1em;
+      white-space: pre-wrap;
+    }
+  </style>
+</head>
+<body>
+  <h1>ヲシテ文献リーダー</h1>
+
+  <label for="bunken">文献を選択：</label><br />
+  <select id="bunken">
+    <option value="">-- 文献を選択 --</option>
+    <option value="hotsuma">ほつまつたゑ</option>
+    <option value="mikasa">みかさふみ</option>
+    <option value="motora">もとらつたゑ</option>
+    <option value="etc">その他</option>
+  </select>
+  <br />
+
+  <label for="aya">アヤを選択：</label><br />
+  <select id="aya" disabled>
+    <option value="">-- アヤを選択 --</option>
+  </select>
+
+  <div id="content">
+    <h2>本文</h2>
+    <pre id="text"></pre>
+  </div>
+
+  <script>
+    const bunkenSelect = document.getElementById("bunken");
+    const ayaSelect = document.getElementById("aya");
+    const textBox = document.getElementById("text");
+
+    const ayas = {
+      hotsuma: [
+        ...Array.from({ length: 40 }, (_, i) => `hotsuma_aya${i + 1}.json`),
+        "hotsuma_aya19i.json",
+        "hotsuma_aya19ro.json",
+        "jousou_data.json"
+      ],
+      mikasa: [
+        "mikasa_hanimatsurinoaya.json",
+        "mikasa_mikasanoaya.json",
+        "mikasa_oomikaminokuni.json"
+      ],
+      motora: [
+        "motora_futomanionobusuyetoshi.json",
+        "motora_motoratsutaye.json"
+      ],
+      etc: [
+        "etc_sample1.json",
+        "etc_sample2.json"
+      ]
+    };
+
+    bunkenSelect.addEventListener("change", () => {
+      const value = bunkenSelect.value;
+      ayaSelect.innerHTML = "<option value=''>-- アヤを選択 --</option>";
+      if (ayas[value]) {
+        ayaSelect.disabled = false;
+        ayas[value].forEach(file => {
+          const opt = document.createElement("option");
+          opt.value = file;
+          opt.textContent = file.replace(".json", "");
+          ayaSelect.appendChild(opt);
+        });
+      } else {
+        ayaSelect.disabled = true;
+      }
+      textBox.textContent = "";
+    });
+
+    ayaSelect.addEventListener("change", () => {
+      const file = ayaSelect.value;
+      if (file) {
+        fetch(`./data/${file}`)
+          .then(res => res.json())
+          .then(json => {
+            const lines = json.map(line => Array.isArray(line.行) ? line.行.join("\n") : "").join("\n\n");
+            textBox.textContent = lines;
+          })
+          .catch(err => {
+            textBox.textContent = `読み込み失敗: ${err}`;
+          });
+      } else {
+        textBox.textContent = "";
+      }
+    });
+  </script>
+
+  <script>
+    if ('serviceWorker' in navigator) {
+      navigator.serviceWorker.register('service-worker.js')
+        .then(reg => console.log('✅ Service Worker registered', reg))
+        .catch(err => console.warn('❌ Service Worker registration failed:', err));
+    }
+  </script>
+</body>
+</html>
