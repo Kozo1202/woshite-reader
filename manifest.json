@@ -1,10 +1,11 @@
 {
-  "name": "ヲシテ文献リーダー",
-  "short_name": "文献リーダー",
+  "name": "ヲシテ文献索引システム",
+  "short_name": "ヲシテ索引",
+  "description": "ヲシテ文献の全文から検索できるPWAアプリです",
   "start_url": "./index.html",
   "display": "standalone",
   "background_color": "#fffbe6",
-  "theme_color": "#663300",
+  "theme_color": "#fffbe6",
   "icons": [
     {
       "src": "icon-192.png",
