@@ -12,13 +12,29 @@
       background-color: #fffbe6;
       color: #333;
       margin: 0;
-      padding: 1em;
+      padding: 2em;
     }
-    select {
+    .notice-box {
+      border: 1px solid #ccc;
+      border-radius: 8px;
+      background: #fff8d6;
+      padding: 1em 1.5em;
+      margin-bottom: 2em;
+    }
+    h1 {
+      font-size: 1.8em;
+      margin-bottom: 0.5em;
+    }
+    h2 {
+      margin-top: 1.5em;
+      font-size: 1.2em;
+    }
+    select, input[type="text"] {
       font-size: 1.1em;
       padding: 0.5em;
-      margin-bottom: 1em;
       width: 100%;
+      margin-top: 0.5em;
+      margin-bottom: 1.5em;
     }
     pre {
       white-space: pre-wrap;
@@ -27,14 +43,23 @@
       padding: 1em;
       border-radius: 8px;
     }
-    h1 {
-      font-size: 1.5em;
-      margin-bottom: 0.5em;
+    small {
+      font-size: 0.9em;
+      color: #555;
     }
   </style>
 </head>
 <body>
-  <h1>ヲシテ文献リーダー</h1>
+  <h1>ヲシテ文献索引システム</h1>
+
+  <div class="notice-box">
+    <p><strong>⚠️ ご利用にあたってのお願い</strong></p>
+    <ul>
+      <li>このツールは <strong>営利目的で使用しない</strong> と約束した方のみ活用可能です。</li>
+      <li>使用者は <strong>真心でヲシテ文献を研鑽する方</strong> に限ります。</li>
+      <li>このページにアクセスした時点で、<strong>上記に同意したもの</strong>とみなされます。</li>
+    </ul>
+  </div>
 
   <label for="docSelect">文献を選択：</label>
   <select id="docSelect"></select>
@@ -55,7 +80,6 @@
         const docSelect = document.getElementById("docSelect");
         const ayaSelect = document.getElementById("ayaSelect");
 
-        // 文献リストをセット
         const docs = Object.keys(sourceData);
         docs.forEach(doc => {
           const opt = document.createElement("option");
@@ -92,7 +116,6 @@
           }
         });
 
-        // 初期表示
         docSelect.dispatchEvent(new Event("change"));
       })
       .catch(err => console.error("データ読み込み失敗:", err));

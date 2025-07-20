@@ -1,52 +1,50 @@
-const CACHE_NAME = 'woshite-index-v3';
+const CACHE_NAME = "woshite-cache-v1";
 const urlsToCache = [
-  './',
-  './index.html',
-  './style.css',
-  './main.js',
-  './manifest.json',
-  './icon-192.png',
-  './icon-512.png',
-  './woshite-all.json'
+  "./",
+  "./index.html",
+  "./manifest.json",
+  "./service-worker.js",
+  "./woshite-all.json",
+  "./icon-192.png",
+  "./icon-512.png",
+  "https://fonts.googleapis.com/css2?family=Noto+Serif+JP&display=swap"
 ];
 
-// インストール時にキャッシュするファイルを定義
-self.addEventListener('install', event => {
+// インストール時にキャッシュ
+self.addEventListener("install", event => {
   event.waitUntil(
     caches.open(CACHE_NAME).then(cache => {
       return cache.addAll(urlsToCache);
+    }).catch(err => {
+      console.warn("キャッシュ失敗:", err);
     })
   );
 });
 
-// リクエストに対するキャッシュ対応
-self.addEventListener('fetch', event => {
-  event.respondWith(
-    caches.match(event.request).then(response => {
-      return (
-        response ||
-        fetch(event.request).catch(() => {
-          return new Response('オフライン中です。', {
-            headers: { 'Content-Type': 'text/plain; charset=utf-8' }
-          });
+// アクティベート時に古いキャッシュ削除
+self.addEventListener("activate", event => {
+  event.waitUntil(
+    caches.keys().then(keyList => {
+      return Promise.all(
+        keyList.map(key => {
+          if (key !== CACHE_NAME) {
+            return caches.delete(key);
+          }
         })
       );
     })
   );
 });
 
-// 古いキャッシュの削除
-self.addEventListener('activate', event => {
-  const cacheWhitelist = [CACHE_NAME];
-  event.waitUntil(
-    caches.keys().then(keyList =>
-      Promise.all(
-        keyList.map(key => {
-          if (!cacheWhitelist.includes(key)) {
-            return caches.delete(key);
-          }
-        })
-      )
-    )
+// fetch時の処理：ネット優先 → キャッシュ fallback
+self.addEventListener("fetch", event => {
+  event.respondWith(
+    fetch(event.request)
+      .then(response => {
+        return response;
+      })
+      .catch(() => {
+        return caches.match(event.request);
+      })
   );
 });
