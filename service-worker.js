@@ -7,7 +7,7 @@ const urlsToCache = [
   './manifest.json',
   './icon-192.png',
   './icon-512.png',
-  './woshide-all.json'
+  './woshite-all.json'
 ];
 
 // インストール時にキャッシュするファイルを定義
