@@ -82,7 +82,14 @@
           const selectedAya = ayaSelect.value;
           const lines = sourceData[selectedDoc][selectedAya];
           const contentDiv = document.getElementById("content");
-          contentDiv.innerHTML = `<h2>${selectedDoc} ${selectedAya}</h2><pre>${lines.join("\n")}</pre>`;
+
+          if (Array.isArray(lines)) {
+            contentDiv.innerHTML = `<h2>${selectedDoc} ${selectedAya}</h2><pre>${lines.join("\n")}</pre>`;
+          } else if (typeof lines === "string") {
+            contentDiv.innerHTML = `<h2>${selectedDoc} ${selectedAya}</h2><pre>${lines}</pre>`;
+          } else {
+            contentDiv.innerHTML = `<h2>${selectedDoc} ${selectedAya}</h2><pre>⚠️ 表示できない形式のデータです</pre>`;
+          }
         });
 
         // 初期表示
