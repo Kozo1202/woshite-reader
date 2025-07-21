@@ -1,131 +1,129 @@
 <!DOCTYPE html>
 <html lang="ja">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>ヲシテ文献リーダー</title>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>ヲシテ文献索引システム</title>
+
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Serif+JP&display=swap" rel="stylesheet">
   <link rel="manifest" href="manifest.json">
-  <link rel="icon" href="favicon.ico">
+  <link rel="icon" href="icon-192.png" sizes="192x192">
+  <link rel="apple-touch-icon" href="icon-512.png">
+  <meta name="theme-color" content="#fffbe6">
+
   <style>
     body {
-      font-family: "Noto Serif JP", serif;
+      font-family: 'Noto Serif JP', serif;
       background-color: #fffbe6;
       color: #333;
-      margin: 0;
-      padding: 2em;
-    }
-    .notice-box {
-      border: 1px solid #ccc;
-      border-radius: 8px;
-      background: #fff8d6;
-      padding: 1em 1.5em;
-      margin-bottom: 2em;
-    }
-    h1 {
-      font-size: 1.8em;
-      margin-bottom: 0.5em;
-    }
-    h2 {
-      margin-top: 1.5em;
-      font-size: 1.2em;
-    }
-    select, input[type="text"] {
-      font-size: 1.1em;
-      padding: 0.5em;
-      width: 100%;
-      margin-top: 0.5em;
-      margin-bottom: 1.5em;
-    }
-    pre {
-      white-space: pre-wrap;
-      word-break: break-word;
-      background: #f4f4f4;
       padding: 1em;
-      border-radius: 8px;
     }
-    small {
-      font-size: 0.9em;
-      color: #555;
+    input {
+      width: 100%;
+      font-size: 1.2em;
+      padding: 0.5em;
+      margin-bottom: 1em;
+    }
+    .result {
+      border-top: 1px solid #ccc;
+      padding-top: 1em;
+    }
+    .entry {
+      margin-bottom: 1em;
+    }
+    .page {
+      font-weight: bold;
+      color: #663300;
+    }
+    .line {
+      white-space: pre-wrap;
+    }
+    mark {
+      background-color: yellow;
     }
   </style>
 </head>
 <body>
   <h1>ヲシテ文献索引システム</h1>
 
-  <div class="notice-box">
-    <p><strong>⚠️ ご利用にあたってのお願い</strong></p>
-    <ul>
-      <li>このツールは <strong>営利目的で使用しない</strong> と約束した方のみ活用可能です。</li>
-      <li>使用者は <strong>真心でヲシテ文献を研鑽する方</strong> に限ります。</li>
-      <li>このページにアクセスした時点で、<strong>上記に同意したもの</strong>とみなされます。</li>
-    </ul>
+  <div id="agreement" style="background:#fffbe6; border:1px solid #cc9; padding:1.5em; margin-bottom:2em; border-radius:8px;">
+    <p style="font-weight:bold; font-size:1.1em;">⚠️ ご利用にあたってのお願い</p>
+    <p style="margin-top:0.5em;">
+      ・このツールは <strong>営利目的で使用しない</strong> と約束した方のみ活用可能です。<br>
+      ・使用者は <strong>真心でヲシテ文献を研鑽する方</strong> に限ります。<br>
+      ・このページにアクセスした時点で、<strong>上記に同意したもの</strong>とみなされます。
+    </p>
   </div>
 
-  <label for="docSelect">文献を選択：</label>
-  <select id="docSelect"></select>
+  <input type="text" id="search" placeholder="検索語を入力してください（スペース区切り可）" />
 
-  <label for="ayaSelect">アヤを選択：</label>
-  <select id="ayaSelect"></select>
-
-  <div id="content"></div>
+  <div class="result" id="result"></div>
 
   <script>
-    let sourceData = {};
+    let data = [];
 
-    fetch("woshite-all.json")
+    function normalizeText(text) {
+      return text
+        .toLowerCase()
+        .replace(/[Ａ-Ｚａ-ｚ０-９]/g, s => String.fromCharCode(s.charCodeAt(0) - 0xFEE0))
+        .replace(/[ァ-ン]/g, s => String.fromCharCode(s.charCodeAt(0) - 0x60));
+    }
+
+    fetch("woshide-all.json")
       .then(res => res.json())
-      .then(data => {
-        sourceData = data;
+      .then(json => {
+        data = json;
+      });
 
-        const docSelect = document.getElementById("docSelect");
-        const ayaSelect = document.getElementById("ayaSelect");
+    document.getElementById("search").addEventListener("input", function () {
+      const keywordRaw = this.value.trim();
+      const resultDiv = document.getElementById("result");
+      resultDiv.innerHTML = "";
 
-        const docs = Object.keys(sourceData);
-        docs.forEach(doc => {
-          const opt = document.createElement("option");
-          opt.value = doc;
-          opt.textContent = doc;
-          docSelect.appendChild(opt);
-        });
+      if (keywordRaw === "") return;
 
-        docSelect.addEventListener("change", () => {
-          const selectedDoc = docSelect.value;
-          const ayas = Object.keys(sourceData[selectedDoc]);
-          ayaSelect.innerHTML = "";
-          ayas.forEach(aya => {
-            const opt = document.createElement("option");
-            opt.value = aya;
-            opt.textContent = aya;
-            ayaSelect.appendChild(opt);
+      const keywords = keywordRaw.split(/\s+/).map(normalizeText);
+
+      const results = data.filter(entry => {
+        const allText = [entry.文献, entry.ページ, ...entry.行].map(normalizeText).join("\n");
+        return keywords.every(kw => allText.includes(kw));
+      });
+
+      results.forEach(entry => {
+        const entryDiv = document.createElement("div");
+        entryDiv.className = "entry";
+
+        const page = document.createElement("div");
+        page.className = "page";
+        page.textContent = `『${entry.文献}』 ${entry.ページ}`;
+
+        const lines = document.createElement("div");
+        lines.className = "line";
+
+        const highlightedLines = entry.行.map(line => {
+          let resultLine = line;
+          keywords.forEach(kw => {
+            const reg = new RegExp(`${kw.replace(/[-/\\^$*+?.()|[\]{}]/g, '\\$&')}`, "gi");
+            resultLine = resultLine.replace(reg, match => `<mark>${match}</mark>`);
           });
-          ayaSelect.dispatchEvent(new Event("change"));
+          return resultLine;
         });
 
-        ayaSelect.addEventListener("change", () => {
-          const selectedDoc = docSelect.value;
-          const selectedAya = ayaSelect.value;
-          const lines = sourceData[selectedDoc][selectedAya];
-          const contentDiv = document.getElementById("content");
-
-          if (Array.isArray(lines)) {
-            contentDiv.innerHTML = `<h2>${selectedDoc} ${selectedAya}</h2><pre>${lines.join("\n")}</pre>`;
-          } else if (typeof lines === "string") {
-            contentDiv.innerHTML = `<h2>${selectedDoc} ${selectedAya}</h2><pre>${lines}</pre>`;
-          } else {
-            contentDiv.innerHTML = `<h2>${selectedDoc} ${selectedAya}</h2><pre>⚠️ 表示できない形式のデータです</pre>`;
-          }
-        });
-
-        docSelect.dispatchEvent(new Event("change"));
-      })
-      .catch(err => console.error("データ読み込み失敗:", err));
+        lines.innerHTML = highlightedLines.join("<br>");
+        entryDiv.appendChild(page);
+        entryDiv.appendChild(lines);
+        resultDiv.appendChild(entryDiv);
+      });
+    });
   </script>
 
   <script>
     if ('serviceWorker' in navigator) {
-      navigator.serviceWorker.register('./service-worker.js')
-        .then(reg => console.log('✅ Service Worker registered', reg))
-        .catch(err => console.warn('❌ Service Worker registration failed:', err));
+      window.addEventListener('load', () => {
+        navigator.serviceWorker.register('service-worker-v3.js')
+          .then(reg => console.log('SW registered:', reg.scope))
+          .catch(err => console.error('SW registration failed:', err));
+      });
     }
   </script>
 </body>
