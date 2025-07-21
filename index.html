@@ -69,7 +69,7 @@
         .replace(/[ァ-ン]/g, s => String.fromCharCode(s.charCodeAt(0) - 0x60));
     }
 
-    fetch("woshide-all.json")
+    fetch("woshite-all.json")
       .then(res => res.json())
       .then(json => {
         data = json;
