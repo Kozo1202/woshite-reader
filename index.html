@@ -41,10 +41,35 @@
     mark {
       background-color: yellow;
     }
+
+    .title-with-version {
+      display: flex;
+      align-items: baseline;
+      gap: 4ch;
+    }
+
+    .version {
+      font-size: 0.4em;
+      color: #666;
+    }
+
+    .vertical {
+      writing-mode: vertical-rl;
+      text-orientation: mixed;
+      line-height: 2;
+    }
+    .horizontal {
+      writing-mode: horizontal-tb;
+    }
   </style>
 </head>
 <body>
-  <h1>ヲシテ文献索引システム</h1>
+  <h1 class="title-with-version">
+    ヲシテ文献索引システム
+    <span class="version">version 1.0</span>
+  </h1>
+
+  <button class="toggle-btn" onclick="toggleMode()">縦書き⇔横書き 切り替え</button>
 
   <div id="agreement" style="background:#fffbe6; border:1px solid #cc9; padding:1.5em; margin-bottom:2em; border-radius:8px;">
     <p style="font-weight:bold; font-size:1.1em;">⚠️ ご利用にあたってのお願い</p>
@@ -57,7 +82,18 @@
 
   <input type="text" id="search" placeholder="検索語を入力してください（スペース区切り可）" />
 
-  <div class="result" id="result"></div>
+  <p style="font-size: 0.3em; color: #555; border-top: 1px solid #ccc; padding-top: 0.5em; margin-bottom: 1em;">
+    ※底本：<br>
+         『ほつまつたゑ』 小笠原長弘筆写本<br>
+         『みかさふみ』 和仁估安聰筆写本<br>
+         『もとらつたゑ』野々村立蔵筆写本<br>
+         『朝日神紀』 溥泉筆写本<br>
+         『春日山紀』 溥泉筆写本<br>
+    ※助詞の「わ」の濁音は、全て清音で記述した<br>
+    ※ヤマトタケの別名はオウスをコウスで統一した
+  </p>
+
+  <div class="result horizontal" id="result"></div>
 
   <script>
     let data = [];
@@ -115,12 +151,18 @@
         resultDiv.appendChild(entryDiv);
       });
     });
+
+    function toggleMode() {
+      const result = document.getElementById("result");
+      result.classList.toggle("vertical");
+      result.classList.toggle("horizontal");
+    }
   </script>
 
   <script>
     if ('serviceWorker' in navigator) {
       window.addEventListener('load', () => {
-        navigator.serviceWorker.register('service-worker.js')
+        navigator.serviceWorker.register('service-worker-v1.js')
           .then(reg => console.log('SW registered:', reg.scope))
           .catch(err => console.error('SW registration failed:', err));
       });
